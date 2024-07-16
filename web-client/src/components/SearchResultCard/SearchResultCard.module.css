@@ -1,0 +1,22 @@
+.wrapper {
+    margin-bottom: 1rem;
+}
+
+.wrapper:last-child {
+    margin-bottom: 0;
+}
+
+.breadcrumbsWrapper {
+    font-size: 0.75rem;
+    text-decoration: none;
+}
+
+.crumb:not(:first-child)::before {
+    content: "\25B8";
+    margin: 0 0.25rem;
+    font-size: 0.75rem;
+}
+
+.titleWrapper {
+    margin-bottom: 0.25rem;
+}

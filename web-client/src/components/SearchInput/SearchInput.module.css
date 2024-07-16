@@ -1,0 +1,32 @@
+.inputWrapper {
+    display: flex;
+    border: 1px solid #b4b4b4;
+    border-radius: 2rem;
+    align-items: center;
+    width: 100%;
+}
+
+.input {
+    background: inherit;
+    outline: none;
+    border: none;
+    padding: 0.5rem 0 0.5rem 1rem;
+    flex: 1;
+}
+
+.inputWrapper:focus {
+    box-shadow: 0 0 1rem rgba(0, 0, 0, 0.2);
+}
+
+.search {
+    padding: 0 0.5rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+    align-self: stretch;
+    font-size: 1rem;
+}
+
+.searchDisabled {
+    pointer-events: none !important;
+}
