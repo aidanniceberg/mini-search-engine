@@ -1,1 +1,1 @@
-from .reward_service import RewardService
+from .search_service import SearchService

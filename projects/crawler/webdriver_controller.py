@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 
-from projects.crawler.parser import WebDriver
+from projects.crawler.webdriver import WebDriver
 
 
 class WebDriverController:

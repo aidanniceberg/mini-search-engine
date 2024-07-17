@@ -1,20 +1,23 @@
+import json
 import logging
 
-from selenium import  webdriver
+from selenium import webdriver
 from selenium.common.exceptions import (
     NoSuchElementException,
     TimeoutException,
     WebDriverException,
+    StaleElementReferenceException,
 )
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
+from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
 
 class WebDriver(webdriver.Chrome):
-    def run(self, url: str):
+    def parse(self, url: str):
         """
         Parse a given website
         :param url: url of website
@@ -31,11 +34,38 @@ class WebDriver(webdriver.Chrome):
 
         self._wait_for_load()
 
-        content = self._get_content()
-        description = self._get_description()
-        title = self.title
-        alts = self._get_img_alts()
-        links = self._get_links()
+        content = None
+        description = None
+        title = None
+        alts = None
+        links = None
+        h1 = None
+        h2 = None
+        h3 = None
+        h4 = None
+        h5 = None
+        h6 = None
+        paragraphs = None
+        linked_data = None
+        try:
+            content = self._get_content()
+            description = self._get_description()
+            title = self.title
+            alts = self._get_img_alts()
+            links = self._get_links()
+            h1 = self._agg_text_by_tag("h1")
+            h2 = self._agg_text_by_tag("h2")
+            h3 = self._agg_text_by_tag("h3")
+            h4 = self._agg_text_by_tag("h4")
+            h5 = self._agg_text_by_tag("h5")
+            h6 = self._agg_text_by_tag("h6")
+            paragraphs = self._agg_text_by_tag("p") | self._agg_text_by_tag("div")
+            linked_data = self._get_linked_data()
+        except StaleElementReferenceException as e:
+            logger.error(f"StaleElementReferenceException while parsing {url}: {e}")
+        except Exception as e:
+            logger.error(f"An unexpected exception occurred: {e}")
+            raise e
 
         logger.info(f"Successfully parsed {url}")
 
@@ -45,9 +75,17 @@ class WebDriver(webdriver.Chrome):
                 title=title,
                 description=description,
                 content=content,
-                alts=list(alts),
+                alts=list(alts) if alts else [],
+                h1=list(h1) if h1 else [],
+                h2=list(h2) if h2 else [],
+                h3=list(h3) if h3 else [],
+                h4=list(h4) if h4 else [],
+                h5=list(h5) if h5 else [],
+                h6=list(h6) if h6 else [],
+                paragraphs=list(paragraphs) if paragraphs else [],
+                linked_data=linked_data,
             ),
-            links,
+            links if links else [],
         )
 
     def _get_links(self):
@@ -56,6 +94,9 @@ class WebDriver(webdriver.Chrome):
         for anchor in anchor_tags:
             href = anchor.get_attribute("href")
             if href is None:
+                continue
+            parsed = urlparse(href)
+            if parsed.scheme not in ("", "http", "https"):
                 continue
             # take out query parameters
             href = href.lower().split("?")[0]
@@ -72,6 +113,10 @@ class WebDriver(webdriver.Chrome):
                 alts.add(alt)
         return alts
 
+    def _agg_text_by_tag(self, tag: str):
+        elements = self.find_elements(By.TAG_NAME, tag)
+        return set([element.text for element in elements])
+
     def _get_content(self):
         try:
             body_element = self.find_element(By.TAG_NAME, "body")
@@ -85,6 +130,16 @@ class WebDriver(webdriver.Chrome):
                 By.CSS_SELECTOR, 'meta[name="description"]'
             )
             return description_tag.get_attribute("content")
+        except NoSuchElementException:
+            return None
+
+    def _get_linked_data(self):
+        try:
+            script_tag = self.find_element(
+                By.CSS_SELECTOR, 'script[type="application/ld+json"]'
+            )
+            html = script_tag.get_attribute("innerHTML")
+            return json.loads(html) if html else None
         except NoSuchElementException:
             return None
 
@@ -112,8 +167,3 @@ class WebDriver(webdriver.Chrome):
             logger.error(f"Unexpected error occurred waiting for content to load: {e}")
             raise e
         return True
-
-
-if __name__ == "__main__":
-    parser = Parser()
-    print(parser.run(url="https://blog.hubspot.com/marketing/meta-tags"))

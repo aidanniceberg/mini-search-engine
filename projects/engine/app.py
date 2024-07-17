@@ -2,9 +2,7 @@ import logging
 
 from flask import Flask
 
-from src.consumers.consumer_task import ConsumerTask
-from src.endpoints.v1.v1_app import V1App
-from src.handlers import RewardHandler
+from projects.engine.endpoints.v1.v1_app import V1App
 
 
 class FlaskApp(Flask):
@@ -25,6 +23,4 @@ logging.basicConfig(level=logging.DEBUG, format=log_fmt)
 app = FlaskApp(__name__)
 
 if __name__ == "__main__":
-    consumer_task = ConsumerTask(channel="new-reward", handler=RewardHandler())
-    consumer_task.start()
-    app.run(host="0.0.0.0", port=5001)
+    app.run(port=5000)

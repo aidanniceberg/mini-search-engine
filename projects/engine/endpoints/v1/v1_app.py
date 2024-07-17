@@ -1,10 +1,10 @@
 from flask import Blueprint
 
-from src.endpoints.v1.rewards import RewardsAPI
+from projects.engine.endpoints.v1.search import SearchAPI
 
 
 class V1App(Blueprint):
     def __init__(self):
         super().__init__("V1App", __name__)
 
-        self.register_blueprint(RewardsAPI(), url_prefix="/rewards")
+        self.register_blueprint(SearchAPI(), url_prefix="/search")

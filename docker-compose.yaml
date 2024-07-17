@@ -1,7 +1,10 @@
 services:
   elasticsearch:
-    image: elasticsearch:8.14.2
+    image: elasticsearch:7.17.22
     container_name: elasticsearch
     ports:
       - "9200:9200"
-      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"  # Adjust memory settings as needed
+      - discovery.seed_hosts=elasticsearch
